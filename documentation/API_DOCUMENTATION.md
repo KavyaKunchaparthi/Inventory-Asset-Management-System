@@ -13,12 +13,19 @@ The system supports:
 - Asset inventory management
 - Asset assignment and return tracking
 - Dashboard inventory statistics
+- Employee-specific asset visibility
 
 ---
 
-## 2. Base URL
+# 2. Base URL
 
-For local development:
+## Production
+
+```text
+https://inventory-asset-management-system-w.vercel.app/api
+```
+
+## Local Development
 
 ```text
 http://localhost:5000/api
@@ -36,6 +43,39 @@ Authorization: Bearer <token>
 
 - 🟢 **User/Admin** — Any authenticated user
 - 🔒 **Admin Only** — Only authenticated users with the `admin` role
+
+---
+
+## 2.1 Deployment
+
+The application is deployed using **Vercel**, with the MySQL database hosted on **Aiven Cloud**.
+
+### Frontend
+
+```text
+https://inventory-asset-management-system-s.vercel.app
+```
+
+### Backend API
+
+```text
+https://inventory-asset-management-system-w.vercel.app
+```
+
+### Production API Base URL
+
+```text
+https://inventory-asset-management-system-w.vercel.app/api
+```
+
+### Database
+
+```text
+Aiven Cloud MySQL
+Database: inventory_management
+```
+
+The production frontend communicates with the deployed backend API, which connects to the cloud-hosted MySQL database.
 
 ---
 
@@ -75,9 +115,54 @@ Creates a new user account. New accounts are registered with the `user` role.
 }
 ```
 
+### Possible Error Responses
+
+#### Missing Fields
+
+```json
+{
+  "message": "All fields are required"
+}
+```
+
+#### Invalid Email
+
+```json
+{
+  "message": "Invalid email"
+}
+```
+
+#### Email Already Exists
+
+```json
+{
+  "message": "Email already exists"
+}
+```
+
+#### Database Error
+
+```json
+{
+  "message": "Database error",
+  "error": "<error message>"
+}
+```
+
 ### Notes
 
-The user role is assigned by the backend. The client cannot select the role during registration.
+The user role is assigned by the backend.
+
+The client cannot select or modify the role during registration.
+
+Every normal registration is automatically assigned:
+
+```json
+{
+  "role": "user"
+}
+```
 
 ---
 
@@ -116,14 +201,54 @@ Authenticates a registered user and returns a JWT token and the user's role.
 }
 ```
 
-### Notes
-
-The returned JWT token must be used to access protected APIs.
+### Admin Login Response
 
 For an admin account, the response role will be:
 
 ```json
-"role": "admin"
+{
+  "message": "Login Successful",
+  "token": "<JWT_TOKEN>",
+  "role": "admin"
+}
+```
+
+### Possible Error Responses
+
+#### Missing Email or Password
+
+```json
+{
+  "message": "Email and Password are required"
+}
+```
+
+#### Invalid Email
+
+```json
+{
+  "message": "Invalid Email"
+}
+```
+
+#### Invalid Password
+
+```json
+{
+  "message": "Invalid Password"
+}
+```
+
+### Notes
+
+The returned JWT token must be used to access protected APIs.
+
+The token is generated using the user's database ID and role.
+
+The token expires after:
+
+```text
+1 day
 ```
 
 ---
@@ -146,6 +271,12 @@ GET /employees
 
 Returns all employee records stored in the system.
 
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
 ### Actual Response Structure
 
 ```json
@@ -164,6 +295,20 @@ Returns all employee records stored in the system.
 ]
 ```
 
+### Description of Fields
+
+| Field | Description |
+|---|---|
+| `id` | Numeric database ID |
+| `employee_id` | Unique employee identifier |
+| `name` | Employee name |
+| `department` | Employee department |
+| `designation` | Employee job designation |
+| `email` | Employee email address |
+| `phone` | Employee phone number |
+| `status` | Employee status |
+| `created_at` | Record creation timestamp |
+
 ---
 
 ## 4.2 Add Employee
@@ -181,6 +326,12 @@ POST /employees/add
 ### Description
 
 Adds a new employee record to the system.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Request Body
 
@@ -204,6 +355,10 @@ Adds a new employee record to the system.
 }
 ```
 
+### Access Control
+
+Only authenticated users with the `admin` role can add employees.
+
 ---
 
 ## 4.3 Update Employee
@@ -222,11 +377,19 @@ PUT /employees/:id
 
 Updates an existing employee using the employee's numeric database ID.
 
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
 ### Example
 
 ```http
 PUT /employees/13
 ```
+
+Here, `13` represents the employee's numeric database ID.
 
 ### Request Body
 
@@ -258,6 +421,10 @@ PUT /employees/13
 }
 ```
 
+### Access Control
+
+Only authenticated admins can update employee records.
+
 ---
 
 ## 4.4 Delete Employee
@@ -276,6 +443,12 @@ DELETE /employees/:id
 
 Deletes an employee record using the employee's numeric database ID.
 
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
 ### Example
 
 ```http
@@ -289,6 +462,10 @@ DELETE /employees/13
   "message": "Employee Deleted Successfully"
 }
 ```
+
+### Access Control
+
+Only authenticated admins can delete employee records.
 
 ---
 
@@ -310,6 +487,12 @@ GET /assets
 
 Returns all assets available in the organization's inventory.
 
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
 ### Actual Response Structure
 
 ```json
@@ -327,6 +510,20 @@ Returns all assets available in the organization's inventory.
   }
 ]
 ```
+
+### Description of Fields
+
+| Field | Description |
+|---|---|
+| `id` | Numeric database ID |
+| `asset_name` | Name of the asset |
+| `asset_type` | Type/category of asset |
+| `serial_number` | Asset serial number |
+| `purchase_date` | Asset purchase date |
+| `quantity` | Total number of units owned |
+| `available_quantity` | Number of units currently available |
+| `status` | Current asset status |
+| `created_at` | Record creation timestamp |
 
 ### Quantity Behavior
 
@@ -353,6 +550,12 @@ GET /assets/dashboard
 
 Returns organization-wide inventory statistics used by the Admin Dashboard.
 
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
 ### Actual Response
 
 ```json
@@ -373,6 +576,10 @@ Returns organization-wide inventory statistics used by the Admin Dashboard.
 | `availableAssets` | Total available asset units |
 | `assignedAssets` | Total currently assigned asset units |
 
+### Access Control
+
+Only authenticated admins can access dashboard statistics.
+
 ---
 
 ## 5.3 Add Asset
@@ -390,6 +597,12 @@ POST /assets/add
 ### Description
 
 Adds a new asset record to the organization's inventory.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Request Body
 
@@ -413,6 +626,10 @@ Adds a new asset record to the organization's inventory.
 }
 ```
 
+### Access Control
+
+Only authenticated admins can add assets.
+
 ---
 
 ## 5.4 Update Asset
@@ -430,6 +647,12 @@ PUT /assets/:id
 ### Description
 
 Updates an existing asset using its numeric database ID.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Example
 
@@ -459,6 +682,10 @@ PUT /assets/16
 }
 ```
 
+### Access Control
+
+Only authenticated admins can update assets.
+
 ---
 
 ## 5.5 Delete Asset
@@ -477,7 +704,11 @@ DELETE /assets/:id
 
 Deletes an asset record from inventory.
 
-The system prevents deletion when the asset is currently assigned.
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Example
 
@@ -496,6 +727,10 @@ DELETE /assets/16
 ### Business Rule
 
 An asset that is currently assigned should not be deleted until it has been returned.
+
+### Access Control
+
+Only authenticated admins can delete assets.
 
 ---
 
@@ -516,6 +751,12 @@ GET /assets/assignments
 ### Description
 
 Returns asset assignment records.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Admin Behavior
 
@@ -545,6 +786,20 @@ The filtering is performed using the authenticated user's identity and employee 
 ]
 ```
 
+### Description of Fields
+
+| Field | Description |
+|---|---|
+| `id` | Assignment database ID |
+| `employee_id` | Employee identifier associated with the assignment |
+| `name` | Employee name |
+| `employee_email` | Employee email |
+| `asset_name` | Assigned asset name |
+| `serial_number` | Assigned asset serial number |
+| `assigned_date` | Date on which asset was assigned |
+| `return_date` | Date on which asset was returned; `null` if not returned |
+| `status` | Assignment status |
+
 ---
 
 ## 6.2 Assign Asset
@@ -562,6 +817,12 @@ POST /assets/assign
 ### Description
 
 Assigns one available asset unit to an employee.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Request Body
 
@@ -605,6 +866,10 @@ Total Quantity: 10
 Available Quantity: 8
 ```
 
+### Access Control
+
+Only authenticated admins can assign assets.
+
 ---
 
 ## 6.3 Return Asset
@@ -622,6 +887,12 @@ PUT /assets/return/:id
 ### Description
 
 Marks an asset assignment as returned.
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
 
 ### Important
 
@@ -669,13 +940,17 @@ Available Quantity: 9
 Assignment Status: Returned
 ```
 
+### Access Control
+
+Only authenticated admins can record asset returns.
+
 ---
 
 # 7. Authentication and Authorization
 
 The system uses **JWT (JSON Web Tokens)** for authentication.
 
-### Authentication Flow
+## Authentication Flow
 
 ```text
 User Registration
@@ -697,7 +972,7 @@ Role checked where required
 Request allowed or rejected
 ```
 
-### Authentication Middleware
+## Authentication Middleware
 
 Protected requests require:
 
@@ -705,7 +980,7 @@ Protected requests require:
 Authorization: Bearer <JWT_TOKEN>
 ```
 
-If no token is provided:
+### If No Token Is Provided
 
 ```json
 {
@@ -713,7 +988,7 @@ If no token is provided:
 }
 ```
 
-If the token is invalid or expired:
+### If Token Is Invalid or Expired
 
 ```json
 {
@@ -721,7 +996,7 @@ If the token is invalid or expired:
 }
 ```
 
-### Admin Authorization
+## Admin Authorization
 
 Admin-only operations are protected by role-based authorization.
 
@@ -777,7 +1052,7 @@ Available Quantity Decreases
     ↓
 Employee Views Assigned Assets
     ↓
-Employee Requests/Returns Asset
+Asset is Returned
     ↓
 Admin Records Return
     ↓
@@ -786,4 +1061,176 @@ Assignment Status = Returned
 Available Quantity Increases
 ```
 
-This API layer provides the backend functionality required for the Inventory & Asset Management System frontend and database.
+---
+
+# 10. Production API Usage
+
+The production APIs can be accessed using the deployed backend URL.
+
+## 10.1 Production Login Request
+
+### Endpoint
+
+```http
+POST https://inventory-asset-management-system-w.vercel.app/api/auth/login
+```
+
+### Request Body
+
+```json
+{
+  "email": "admin@gmail.com",
+  "password": "your-password"
+}
+```
+
+### Example Success Response
+
+```json
+{
+  "message": "Login Successful",
+  "token": "<JWT_TOKEN>",
+  "role": "admin"
+}
+```
+
+---
+
+## 10.2 Production Get Employees Request
+
+### Endpoint
+
+```http
+GET https://inventory-asset-management-system-w.vercel.app/api/employees
+```
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+## 10.3 Production Get Assets Request
+
+### Endpoint
+
+```http
+GET https://inventory-asset-management-system-w.vercel.app/api/assets
+```
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+## 10.4 Production Get Dashboard Statistics
+
+### Endpoint
+
+```http
+GET https://inventory-asset-management-system-w.vercel.app/api/assets/dashboard
+```
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+## 10.5 Production Get Assignments
+
+### Endpoint
+
+```http
+GET https://inventory-asset-management-system-w.vercel.app/api/assets/assignments
+```
+
+### Request Header
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+# 11. Project Deployment Links
+
+## Live Frontend
+
+```text
+https://inventory-asset-management-system-s.vercel.app
+```
+
+## Live Backend
+
+```text
+https://inventory-asset-management-system-w.vercel.app
+```
+
+## GitHub Repository
+
+```text
+https://github.com/KavyaKunchaparthi/Inventory-Asset-Management-System
+```
+
+---
+
+# 12. Technology Stack
+
+The API and application are built using the following technologies:
+
+- **Frontend:** React.js
+- **Build Tool:** Vite
+- **Backend:** Node.js
+- **Backend Framework:** Express.js
+- **Database:** MySQL
+- **Database Hosting:** Aiven Cloud
+- **Authentication:** JSON Web Token (JWT)
+- **Password Hashing:** bcrypt
+- **Input Validation:** Validator.js
+- **Database Driver:** mysql2
+- **Frontend API Communication:** Axios
+- **Frontend Routing:** React Router
+- **Deployment:** Vercel
+
+---
+
+# 13. Security Features
+
+The system implements the following security features:
+
+- JWT-based authentication
+- Password hashing using bcrypt
+- Role-Based Access Control (RBAC)
+- Admin-only access for sensitive operations
+- Protected API routes
+- Token-based authorization
+- Email validation during registration
+- Duplicate email checking
+- User role assignment controlled by the backend
+- Employee-specific assignment filtering for regular users
+
+---
+
+# 14. Conclusion
+
+The Inventory & Asset Management System provides a complete REST API layer for managing organizational employees, assets, inventory quantities, asset assignments, and asset returns.
+
+The API implements authentication and authorization using JWT and role-based access control to separate regular user and administrator permissions.
+
+The system is deployed using:
+
+- **Frontend:** React.js + Vite hosted on Vercel
+- **Backend:** Node.js + Express.js hosted on Vercel
+- **Database:** MySQL hosted on Aiven Cloud
+
+The deployed application provides a production-ready environment where the frontend communicates with the backend API, and the backend connects to the centralized cloud-hosted MySQL database.
+
+The API layer provides the backend functionality required for the **Inventory & Asset Management System** frontend and database.

@@ -25,10 +25,13 @@ const register = async (req, res) => {
             [email],
             async (err, result) => {
                 if (err) {
-                    return res.status(500).json({
-                        message: "Database error"
-                    });
-                }
+    console.error("Registration Database Error:", err);
+
+    return res.status(500).json({
+        message: "Database error",
+        error: err.message
+    });
+}
 
                 if (result.length > 0) {
                     return res.status(400).json({
@@ -50,16 +53,19 @@ const register = async (req, res) => {
                         role
                     ],
                     (err) => {
-                        if (err) {
-                            return res.status(500).json({
-                                message: "Registration failed"
-                            });
-                        }
+    if (err) {
+        console.error("INSERT USER ERROR:", err);
 
-                        res.status(201).json({
-                            message: "User Registered Successfully"
-                        });
-                    }
+        return res.status(500).json({
+            message: "Registration failed",
+            error: err.message
+        });
+    }
+
+    res.status(201).json({
+        message: "User Registered Successfully"
+    });
+}
                 );
             }
         );
