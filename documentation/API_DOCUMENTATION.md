@@ -5,7 +5,6 @@
 This document describes the REST APIs implemented for the **Inventory & Asset Management System**.
 
 The system supports:
-
 - User registration and login
 - JWT-based authentication
 - Role-based access control
@@ -15,8 +14,6 @@ The system supports:
 - Dashboard inventory statistics
 - Employee-specific asset visibility
 
----
-
 # 2. Base URL
 
 ## Production
@@ -24,81 +21,63 @@ The system supports:
 ```text
 https://inventory-asset-management-system-w.vercel.app/api
 ```
-
 ## Local Development
 
 ```text
 http://localhost:5000/api
 ```
-
 All protected endpoints require a JWT token obtained from the Login API.
 
 Send the token in the request header:
-
 ```text
 Authorization: Bearer <token>
 ```
-
 ### Role Legend
 
 - 🟢 **User/Admin** — Any authenticated user
 - 🔒 **Admin Only** — Only authenticated users with the `admin` role
 
----
-
 ## 2.1 Deployment
 
-The application is deployed using **Vercel**, with the MySQL database hosted on **Aiven Cloud**.
+The application is deployed using **Render** for the frontend and **Vercel** for the backend. The MySQL database is hosted on **Aiven** Cloud.
 
 ### Frontend
 
 ```text
-https://inventory-asset-management-system-s.vercel.app
+https://inventory-asset-management-frontend.onrender.com
 ```
-
 ### Backend API
 
 ```text
 https://inventory-asset-management-system-w.vercel.app
 ```
-
 ### Production API Base URL
 
 ```text
 https://inventory-asset-management-system-w.vercel.app/api
 ```
-
 ### Database
 
 ```text
 Aiven Cloud MySQL
 Database: inventory_management
 ```
-
 The production frontend communicates with the deployed backend API, which connects to the cloud-hosted MySQL database.
 
----
-
 # 3. Authentication APIs
-
 ## 3.1 Register User
-
 ### Endpoint
 
 ```http
 POST /auth/register
 ```
-
 ### Access
-
 Public — No token required.
 
 ### Description
-
 Creates a new user account. New accounts are registered with the `user` role.
 
 ### Request Body
-
 ```json
 {
   "name": "Priya",
@@ -106,50 +85,38 @@ Creates a new user account. New accounts are registered with the `user` role.
   "password": "SecurePass123"
 }
 ```
-
 ### Actual Success Response
-
 ```json
 {
   "message": "User Registered Successfully"
 }
 ```
-
 ### Possible Error Responses
-
 #### Missing Fields
-
 ```json
 {
   "message": "All fields are required"
 }
 ```
-
 #### Invalid Email
-
 ```json
 {
   "message": "Invalid email"
 }
 ```
-
 #### Email Already Exists
-
 ```json
 {
   "message": "Email already exists"
 }
 ```
-
 #### Database Error
-
 ```json
 {
   "message": "Database error",
   "error": "<error message>"
 }
 ```
-
 ### Notes
 
 The user role is assigned by the backend.
@@ -163,36 +130,26 @@ Every normal registration is automatically assigned:
   "role": "user"
 }
 ```
-
----
-
 ## 3.2 Login
-
 ### Endpoint
 
 ```http
 POST /auth/login
 ```
-
 ### Access
-
 Public — No token required.
 
 ### Description
-
 Authenticates a registered user and returns a JWT token and the user's role.
 
 ### Request Body
-
 ```json
 {
   "email": "priya@gmail.com",
   "password": "SecurePass123"
 }
 ```
-
 ### Actual Success Response
-
 ```json
 {
   "message": "Login Successful",
@@ -202,7 +159,6 @@ Authenticates a registered user and returns a JWT token and the user's role.
 ```
 
 ### Admin Login Response
-
 For an admin account, the response role will be:
 
 ```json
@@ -212,33 +168,25 @@ For an admin account, the response role will be:
   "role": "admin"
 }
 ```
-
-### Possible Error Responses
-
-#### Missing Email or Password
+### Possible Error Responses(Missing Email or Password)
 
 ```json
 {
   "message": "Email and Password are required"
 }
 ```
-
 #### Invalid Email
-
 ```json
 {
   "message": "Invalid Email"
 }
 ```
-
 #### Invalid Password
-
 ```json
 {
   "message": "Invalid Password"
 }
 ```
-
 ### Notes
 
 The returned JWT token must be used to access protected APIs.
@@ -246,15 +194,12 @@ The returned JWT token must be used to access protected APIs.
 The token is generated using the user's database ID and role.
 
 The token expires after:
-
 ```text
 1 day
 ```
-
 ---
 
 # 4. Employee APIs
-
 ## 4.1 Get All Employees
 
 ### Endpoint
@@ -1060,13 +1005,8 @@ Assignment Status = Returned
     ↓
 Available Quantity Increases
 ```
-
----
-
 # 10. Production API Usage
-
 The production APIs can be accessed using the deployed backend URL.
-
 ## 10.1 Production Login Request
 
 ### Endpoint
@@ -1094,8 +1034,6 @@ POST https://inventory-asset-management-system-w.vercel.app/api/auth/login
 }
 ```
 
----
-
 ## 10.2 Production Get Employees Request
 
 ### Endpoint
@@ -1103,15 +1041,11 @@ POST https://inventory-asset-management-system-w.vercel.app/api/auth/login
 ```http
 GET https://inventory-asset-management-system-w.vercel.app/api/employees
 ```
-
 ### Request Header
 
 ```text
 Authorization: Bearer <JWT_TOKEN>
 ```
-
----
-
 ## 10.3 Production Get Assets Request
 
 ### Endpoint
@@ -1125,9 +1059,6 @@ GET https://inventory-asset-management-system-w.vercel.app/api/assets
 ```text
 Authorization: Bearer <JWT_TOKEN>
 ```
-
----
-
 ## 10.4 Production Get Dashboard Statistics
 
 ### Endpoint
@@ -1135,14 +1066,10 @@ Authorization: Bearer <JWT_TOKEN>
 ```http
 GET https://inventory-asset-management-system-w.vercel.app/api/assets/dashboard
 ```
-
 ### Request Header
-
 ```text
 Authorization: Bearer <JWT_TOKEN>
 ```
-
----
 
 ## 10.5 Production Get Assignments
 
@@ -1158,33 +1085,29 @@ GET https://inventory-asset-management-system-w.vercel.app/api/assets/assignment
 Authorization: Bearer <JWT_TOKEN>
 ```
 
----
-
 # 11. Project Deployment Links
 
 ## Live Frontend
 
 ```text
-https://inventory-asset-management-system-s.vercel.app
+https://inventory-asset-management-frontend.onrender.com
 ```
-
 ## Live Backend
-
 ```text
 https://inventory-asset-management-system-w.vercel.app
 ```
-
+## Production API Base URL
+```text
+https://inventory-asset-management-system-w.vercel.app/api
+```
 ## GitHub Repository
 
 ```text
 https://github.com/KavyaKunchaparthi/Inventory-Asset-Management-System
 ```
-
----
-
 # 12. Technology Stack
 
-The API and application are built using the following technologies:
+ The system is built using the following technologies:
 
 - **Frontend:** React.js
 - **Build Tool:** Vite
@@ -1198,8 +1121,8 @@ The API and application are built using the following technologies:
 - **Database Driver:** mysql2
 - **Frontend API Communication:** Axios
 - **Frontend Routing:** React Router
-- **Deployment:** Vercel
-
+- **Frontend Deployment:** Render
+- **Backend Deployment:** Vercel
 ---
 
 # 13. Security Features
@@ -1216,9 +1139,7 @@ The system implements the following security features:
 - Duplicate email checking
 - User role assignment controlled by the backend
 - Employee-specific assignment filtering for regular users
-
 ---
-
 # 14. Conclusion
 
 The Inventory & Asset Management System provides a complete REST API layer for managing organizational employees, assets, inventory quantities, asset assignments, and asset returns.
@@ -1227,10 +1148,10 @@ The API implements authentication and authorization using JWT and role-based acc
 
 The system is deployed using:
 
-- **Frontend:** React.js + Vite hosted on Vercel
+- **Frontend:** React.js + Vite hosted on Render
 - **Backend:** Node.js + Express.js hosted on Vercel
 - **Database:** MySQL hosted on Aiven Cloud
 
-The deployed application provides a production-ready environment where the frontend communicates with the backend API, and the backend connects to the centralized cloud-hosted MySQL database.
+The deployed application provides a live environment where the frontend communicates with the backend API, and the backend connects to the centralized cloud-hosted MySQL database.
 
 The API layer provides the backend functionality required for the **Inventory & Asset Management System** frontend and database.
