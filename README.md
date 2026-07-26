@@ -98,6 +98,7 @@ Regular users cannot directly assign or return assets. These operations are mana
 ### Database
 
 - MySQL
+- Aiven Cloud MySQL
 
 ### Development Tools
 
@@ -138,7 +139,33 @@ Available Quantity Increases
        ↓
 Assignment History Updated
 ```
+---
 
+## 🚀 Deployment
+
+The application is deployed using separate hosting services for the frontend and backend.
+
+### Frontend
+
+The React.js frontend is deployed on Render.
+
+**Live Frontend:**
+
+https://inventory-asset-management-frontend.onrender.com
+
+### Backend
+
+The Node.js and Express.js backend is deployed on Vercel.
+
+**Live Backend:**
+
+https://inventory-asset-management-system-w.vercel.app
+
+### Production API Base URL
+
+```text
+https://inventory-asset-management-system-w.vercel.app/api
+```
 ## Project Structure
 
 Inventory-Asset-Management-System/
